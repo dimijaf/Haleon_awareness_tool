@@ -38,53 +38,81 @@ st.session_state["RealTime"]['QuestionnaireDate'] = pd.to_datetime(
 
 if sheet_name == "Report":
     counts = st.session_state["RealTime"]["DeviceId"].astype(str).value_counts()
-    
-    # Transpose FIRST
     df_t = df.T.copy()
-    sum_row = df_t.iloc[0].astype(str).map(counts).fillna(0).astype(int)
-    df_t.loc['Sum'] = sum_row
     
-      
-    days_row = pd.Series(0, index=df_t.columns, name='Days Installed')
-    installed_row = df_t.loc['Installed Day']  
+    # Sum row
+    sum_row = df_t.iloc[0].astype(str).map(counts).fillna(0).astype(float)
+    df_t.loc['Sum'] = sum_row
 
+    # Days Installed - FIXED numeric conversion
+    days_row = pd.Series(0, index=df_t.columns, name='Days Installed')
+    installed_row = df_t.loc['Installed Day']
+    
     for col in df_t.columns:
         date_str = str(installed_row[col]).strip()
         if date_str and '/' in date_str:
             try:
-            # Your dates are MM/DD/YYYY format
-                days_row[col] = (datetime.now() - pd.to_datetime(date_str)).days
+                days_row[col] = (datetime.now() - pd.to_datetime(date_str, format='%m/%d/%Y')).days
             except:
-                pass
+                days_row[col] = 0  # Ensure numeric
+    
+    df_t.loc['Days Installed'] = days_row.astype(float)  # 👈 FORCE numeric
 
-    df_t.loc['Days Installed'] = days_row
- 
-   
+    # Last Seen row
     realtime = st.session_state["RealTime"]
     last_seen_row = pd.Series('', index=df_t.columns, name='Last Seen')
-
-    device_ids_row = df_t.loc['DeviceId']  # Exact row name
-
-    for device_id in device_ids_row.index:  # Loop through DeviceIDs row
+    device_ids_row = df_t.loc['DeviceIDs']
+    
+    for device_id in device_ids_row.index:
         device_id_val = str(device_ids_row[device_id]).strip()
         matching_rows = realtime[realtime['DeviceId'].astype(str).str.strip() == device_id_val]
         if not matching_rows.empty:
-           dates = pd.to_datetime(matching_rows['QuestionnaireDate'], errors='coerce')
-           max_date = dates.max()
-           if pd.notna(max_date):
-               last_seen_row[device_id] = max_date.strftime('%d/%m/%y')
-           else:
-               last_seen_row[device_id] = 'No date'
-
+            # 👈 FIX date parsing warning
+            dates = pd.to_datetime(matching_rows['QuestionnaireDate'], format='%Y-%m-%d', errors='coerce')
+            max_date = dates.max()
+            if pd.notna(max_date):
+                last_seen_row[device_id] = max_date.strftime('%d/%m/%y')
+    
     df_t.loc['Last Seen'] = last_seen_row
-    days_numeric = pd.to_numeric(df_t.loc['Days Installed'], errors='coerce').fillna(0)
-    avg_row = (df_t.loc['Sum'] / days_numeric).round(3)
-    #####avg_row = (df_t.loc['Sum'] / df_t.loc['Days Installed']).round(3)
+
+    # Average - NOW both are numeric!
+    avg_row = (df_t.loc['Sum'] / df_t.loc['Days Installed']).round(3)
     df_t.loc['Average'] = avg_row
 
     st.dataframe(df_t, use_container_width=True)
-else:
-    st.dataframe(df, use_container_width=True)
+
+
+
+
+
+    #df_t.loc['Days Installed'] = days_row
+ 
+   
+    #realtime = st.session_state["RealTime"]
+    #last_seen_row = pd.Series('', index=df_t.columns, name='Last Seen')
+
+    #device_ids_row = df_t.loc['DeviceId']  # Exact row name
+
+    #for device_id in device_ids_row.index:  # Loop through DeviceIDs row
+     #   device_id_val = str(device_ids_row[device_id]).strip()
+      #  matching_rows = realtime[realtime['DeviceId'].astype(str).str.strip() == device_id_val]
+       # if not matching_rows.empty:
+        #   dates = pd.to_datetime(matching_rows['QuestionnaireDate'], errors='coerce')
+         #  max_date = dates.max()
+          # if pd.notna(max_date):
+           #    last_seen_row[device_id] = max_date.strftime('%d/%m/%y')
+           #else:
+            #   last_seen_row[device_id] = 'No date'
+
+    #df_t.loc['Last Seen'] = last_seen_row
+   # days_numeric = pd.to_numeric(df_t.loc['Days Installed'], errors='coerce').fillna(0)
+    #avg_row = (df_t.loc['Sum'] / days_numeric).round(3)
+    #####avg_row = (df_t.loc['Sum'] / df_t.loc['Days Installed']).round(3)
+    #df_t.loc['Average'] = avg_row
+
+    #st.dataframe(df_t, use_container_width=True)
+#else:
+ #   st.dataframe(df, use_container_width=True)
 
     
     
