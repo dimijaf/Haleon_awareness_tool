@@ -73,9 +73,7 @@ if sheet_name == "Report":
             if pd.notna(max_date):
                 last_seen_row[device_id] = max_date.strftime('%d/%m/%y')
     
-    df_t.loc['Last Seen'] = last_seen_row
-    df_t.loc['Sum'] = pd.to_numeric(df_t.loc['Sum'], errors='coerce').fillna(0).astype(float)
-    df_t.loc['Days Installed'] = pd.to_numeric(df_t.loc['Days Installed'], errors='coerce').fillna(0).astype(float)
+    
     # Average - NOW both are numeric!
     avg_row = (df_t.loc['Sum'] / df_t.loc['Days Installed']).round(3)
     df_t.loc['Average'] = avg_row
