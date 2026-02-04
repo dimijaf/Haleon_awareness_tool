@@ -61,7 +61,7 @@ if sheet_name == "Report":
     # Last Seen row
     realtime = st.session_state["RealTime"]
     last_seen_row = pd.Series('', index=df_t.columns, name='Last Seen')
-    device_ids_row = df_t.loc['DeviceIDs']
+    device_ids_row = df_t.loc['DeviceId']
     
     for device_id in device_ids_row.index:
         device_id_val = str(device_ids_row[device_id]).strip()
