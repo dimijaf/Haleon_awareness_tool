@@ -77,8 +77,9 @@ if sheet_name == "Report":
                last_seen_row[device_id] = 'No date'
 
     df_t.loc['Last Seen'] = last_seen_row
-
-    avg_row = (df_t.loc['Sum'] / df_t.loc['Days Installed']).round(3)
+    days_numeric = pd.to_numeric(df_t.loc['Days Installed'], errors='coerce').fillna(0)
+    avg_row = (df_t.loc['Sum'] / days_numeric).round(3)
+    #####avg_row = (df_t.loc['Sum'] / df_t.loc['Days Installed']).round(3)
     df_t.loc['Average'] = avg_row
 
     st.dataframe(df_t, use_container_width=True)
