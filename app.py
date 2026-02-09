@@ -4,6 +4,7 @@ import pandas as pd
 import requests
 from io import StringIO
 
+st.logo("haleon_logo.png")
 st.title("📊 Multi-Sheet Viewer (different URLs)")
 
 # Dictionary of sheet names → URLs
